@@ -50,3 +50,6 @@ pnpm-debug.log*
 
 # solidity
 *.sol
+
+bun.lock
+package.lock
