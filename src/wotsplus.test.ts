@@ -29,16 +29,19 @@ describe('WOTSPlus', () => {
     it('should generate key pair', () => {
         const wotsPlus = new WOTSPlus(keccak_256);
         const privateSeed = numberToUint8Array(1); // Example seed
-        const { publicKey, privateKey } = wotsPlus.generateKeyPair(privateSeed);
+        const publicSeed = numberToUint8Array(2);
+        const { publicKey, privateKey } = wotsPlus.generateKeyPair(privateSeed, publicSeed);
         
         expect(publicKey.length).toBe(wotsPlus.publicKeySize);
+        expect(publicSeed).toEqual(publicKey.slice(0, wotsPlus.hashLen));
         expect(privateKey).not.toEqual(new Uint8Array(32));
     });
 
     it('should fail to verify empty signature', () => {
         const wotsPlus = new WOTSPlus(keccak_256);
         const privateSeed = numberToUint8Array(1);
-        const { publicKey } = wotsPlus.generateKeyPair(privateSeed);
+        const publicSeed = numberToUint8Array(2);
+        const { publicKey } = wotsPlus.generateKeyPair(privateSeed, publicSeed);
 
         // Create a test message
         const message = new Uint8Array(wotsPlus.messageLen);
@@ -57,7 +60,8 @@ describe('WOTSPlus', () => {
     it('should verify valid signature', () => {
         const wotsPlus = new WOTSPlus(keccak_256);
         const privateSeed = numberToUint8Array(1);
-        const { publicKey, privateKey } = wotsPlus.generateKeyPair(privateSeed);
+        const publicSeed = numberToUint8Array(2);
+        const { publicKey, privateKey } = wotsPlus.generateKeyPair(privateSeed, publicSeed);
         
         // Create test message
         const message = new Uint8Array(wotsPlus.messageLen);
@@ -65,7 +69,7 @@ describe('WOTSPlus', () => {
             message[i] = i;
         }
         
-        const signature = wotsPlus.sign(privateKey, message);
+        const signature = wotsPlus.sign(privateKey, publicSeed, message);
         const isValid = wotsPlus.verify(publicKey, message, signature);
         
         expect(isValid).toBe(true);
@@ -74,7 +78,8 @@ describe('WOTSPlus', () => {
     it('should verify valid signature with randomization elements', () => {
         const wotsPlus = new WOTSPlus(keccak_256);
         const privateSeed = numberToUint8Array(1);
-        const { publicKey, privateKey } = wotsPlus.generateKeyPair(privateSeed);
+        const publicSeed = numberToUint8Array(2);
+        const { publicKey, privateKey } = wotsPlus.generateKeyPair(privateSeed, publicSeed);
         
         // Create test message
         const message = new Uint8Array(wotsPlus.messageLen);
@@ -82,10 +87,10 @@ describe('WOTSPlus', () => {
             message[i] = i;
         }
         
-        const signature = wotsPlus.sign(privateKey, message);
+        const signature = wotsPlus.sign(privateKey, publicSeed, message);
         
         // Extract public seed and hash from public key
-        const publicSeed = publicKey.slice(0, wotsPlus.hashLen);
+        expect(publicSeed).toEqual(publicKey.slice(0, wotsPlus.hashLen));
         const publicKeyHash = publicKey.slice(wotsPlus.hashLen, wotsPlus.hashLen * 2);
         
         const randomizationElements = wotsPlus.generateRandomizationElements(publicSeed);
@@ -104,13 +109,14 @@ describe('WOTSPlus', () => {
         const wotsPlus = new WOTSPlus(keccak_256);
         for (let i = 1; i < 1; i++) {
             const privateSeed = numberToUint8Array(i);
-            const { publicKey, privateKey } = wotsPlus.generateKeyPair(privateSeed);
+            const publicSeed = numberToUint8Array(i+1);
+            const { publicKey, privateKey } = wotsPlus.generateKeyPair(privateSeed, publicSeed);
             
             // Create unique message for each iteration
             const message = new TextEncoder().encode(`Hello World${i}`);
             const messageHash = keccak_256(message);
             
-            const signature = wotsPlus.sign(privateKey, messageHash);
+            const signature = wotsPlus.sign(privateKey, publicSeed, messageHash);
             const isValid = wotsPlus.verify(publicKey, messageHash, signature);
             
             expect(isValid).toBe(true);
@@ -121,15 +127,15 @@ describe('WOTSPlus', () => {
         const wotsPlus = new WOTSPlus(keccak_256);
         for (let i = 1; i < 1; i++) {
             const privateSeed = numberToUint8Array(i);
-            const { publicKey, privateKey } = wotsPlus.generateKeyPair(privateSeed);
+            const publicSeed = numberToUint8Array(i);
+            const { publicKey, privateKey } = wotsPlus.generateKeyPair(privateSeed, publicSeed);
             
             // Create unique message for each iteration
             const message = new TextEncoder().encode(`Hello World${i}`);
             const messageHash = keccak_256(message);
             
-            const signature = wotsPlus.sign(privateKey, messageHash);
+            const signature = wotsPlus.sign(privateKey, publicSeed, messageHash);
             
-            const publicSeed = publicKey.slice(0, wotsPlus.hashLen);
             const publicKeyHash = publicKey.slice(wotsPlus.hashLen, wotsPlus.hashLen * 2);
             const randomizationElements = wotsPlus.generateRandomizationElements(publicSeed);
             

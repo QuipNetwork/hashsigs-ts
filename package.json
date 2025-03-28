@@ -1,12 +1,13 @@
 {
-  "name": "hashsigs-ts",
-  "version": "1.0.0",
+  "name": "@quip.network/hashsigs",
+  "version": "0.1.0",
   "description": "Hash-based signatures, WOTS+",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "files": ["dist"],
   "scripts": {
+    "clean": "rm -rf dist coverage node_modules",
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest",
@@ -21,9 +22,12 @@
     "url": "https://github.com/quipnetwork/hashsigs-ts"
   },
   "homepage": "https://github.com/quipnetwork/hashsigs-ts#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@noble/hashes": "^1.7.1",
-    "@types/node": "^22.13.10",
+    "@types/node": "^22.13.14",
     "tsup": "^8.4.0",
     "typescript": "^5.8.2",
     "vitest": "^3.0.9"

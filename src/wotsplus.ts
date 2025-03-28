@@ -206,12 +206,12 @@ export class WOTSPlus {
     }
 
     // Generate key pair
-    public generateKeyPair(privateSeed: Uint8Array): {
+    public generateKeyPair(privateSeed: Uint8Array, publicSeed: Uint8Array): {
         publicKey: Uint8Array,
         privateKey: Uint8Array
     } {
-        const privateKey = this.prf(privateSeed, 0);
-        const publicSeed = this.prf(privateKey, 0);
+        const combinedSeed = new Uint8Array([...privateSeed, ...publicSeed]);
+        const privateKey = this.hash(combinedSeed);
         
         const randomizationElements = this.generateRandomizationElements(publicSeed);
         const functionKey = randomizationElements[0];
@@ -236,10 +236,10 @@ export class WOTSPlus {
         return { publicKey, privateKey };
     }
 
-    // sign: Sign a message with a WOTS+ private key. Do not use this, it is present as an example and
-    // you should be using a typescript version of this function because it requires your private key.
+    // sign: Sign a message with a WOTS+ private key. 
     public sign(
         privateKey: Uint8Array, 
+        publicSeed: Uint8Array,
         message: Uint8Array
     ): Uint8Array[] {
         if (privateKey.length !== this.hashLen) {
@@ -249,7 +249,6 @@ export class WOTSPlus {
             throw new Error(`message length must be ${this.messageLen} bytes`);
         }
 
-        const publicSeed = this.prf(privateKey, 0);
         const randomizationElements = this.generateRandomizationElements(publicSeed);
         const functionKey = randomizationElements[0];
         
